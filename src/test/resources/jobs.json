@@ -1,0 +1,144 @@
+{
+  "id": "41b95016-d0fd-4d5f-acbf-45764b6694d1",
+  "name": "job1",
+  "definition": {
+    "graph": [
+      {
+        "value": {
+          "operation": "READ",
+          "name": "Read_stage",
+          "storage": "dataframe",
+          "schema": "[{\"column\":\"name\",\"type\":\"String\"}]",
+          "data": "[[\"first\"],[\"second\"]]"
+        },
+        "geometry": {
+          "x": 470,
+          "y": 440,
+          "width": 224,
+          "height": 144,
+          "relative": false,
+          "TRANSLATE_CONTROL_POINTS": true,
+          "alternateBounds": null,
+          "sourcePoint": null,
+          "targetPoint": null,
+          "points": null,
+          "offset": null
+        },
+        "style": "fillColor=#E8F0FF;",
+        "id": "2",
+        "vertex": true,
+        "connectable": true,
+        "parent": "1",
+        "source": null,
+        "target": null,
+        "mxObjectId": "mxCell#8",
+        "edges": [
+          {
+            "value": {
+              "operation": "EDGE",
+              "successPath": "true",
+              "text": ""
+            },
+            "geometry": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "relative": true
+            },
+            "style": "edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+            "id": "4",
+            "edge": true,
+            "parent": "1",
+            "source": "2",
+            "target": "3",
+            "mxObjectId": "mxCell#12"
+          }
+        ]
+      },
+      {
+        "value": {
+          "operation": "WRITE",
+          "name": "Write_stage",
+          "storage": "stdout",
+          "quantity": "10"
+        },
+        "geometry": {
+          "x": 930,
+          "y": 440,
+          "width": 224,
+          "height": 144,
+          "relative": false,
+          "TRANSLATE_CONTROL_POINTS": true,
+          "alternateBounds": null,
+          "sourcePoint": null,
+          "targetPoint": null,
+          "points": null,
+          "offset": null
+        },
+        "style": "fillColor=#E8F0FF;",
+        "id": "3",
+        "vertex": true,
+        "connectable": true,
+        "parent": "1",
+        "source": null,
+        "target": null,
+        "mxObjectId": "mxCell#9",
+        "edges": [
+          {
+            "value": {
+              "operation": "EDGE",
+              "successPath": "true",
+              "text": ""
+            },
+            "geometry": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "relative": true
+            },
+            "style": "edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+            "id": "4",
+            "edge": true,
+            "parent": "1",
+            "source": "2",
+            "target": "3",
+            "mxObjectId": "mxCell#12"
+          }
+        ]
+      },
+      {
+        "value": {
+          "operation": "EDGE",
+          "successPath": "true",
+          "text": ""
+        },
+        "geometry": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "relative": true
+        },
+        "style": "edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+        "id": "4",
+        "edge": true,
+        "parent": "1",
+        "source": "2",
+        "target": "3",
+        "mxObjectId": "mxCell#12"
+      }
+    ]
+  },
+  "params": {
+    "DRIVER_CORES": "1",
+    "DRIVER_MEMORY": "1",
+    "EXECUTOR_MEMORY": "1",
+    "UP_TO": "600",
+    "INTERVALS": "30",
+    "TAGS": [
+      "VF-Demo"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "key": "51441ddd-53cd-41f4-9dde-371de6e315d6",
+  "value": {
+    "storage": "s3",
+    "anonymousAccess": "true",
+    "ssl": "false",
+    "endpoint": "#dgdfgfd#",
+    "connectionName": "Roflinka"
+  }
+}

@@ -1,0 +1,39 @@
+server:
+  port: 8080
+  tomcat:
+    accesslog:
+      enabled: true
+  servlet:
+    context-path: /vf
+  error:
+    include-message: always
+    include-binding-errors: always
+  ssl:
+    key-store: ./tmp/vf-cert.p12
+    key-store-password: password
+    key-store-type: pkcs12
+    key-alias: vf-api
+    key-password: password
+
+oauth:
+  url:
+    userInfo: https://path/user
+
+auth:
+  #  email: email
+  #  id: sub
+  #  name: name
+  #  username: preferred_username
+  id: id
+  username: login
+  name: name
+  email: email
+
+superusers:
+  set:
+    - Username
+
+redis:
+  host: localhost
+  # The connection host of Redis database.
+  port: 6379

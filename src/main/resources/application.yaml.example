@@ -1,0 +1,56 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+server:
+  ssl:
+    key-store: C:\Users\VKaptur\vf-cert.p12                       # path to p12 store file
+    key-store-password: KEYSTORE_PASS #${KEYSTORE_PASS}           # password for p12 store file
+    key-store-type: pkcs12                                        # store type
+    key-alias: vf-api                                             # name of key in p12 store file
+    key-password: KEYSTORE_PASS #${KEYSTORE_PASS}                 # password for key in p12 store file
+  host: localhost                                                 # host at which the application will be running
+  port: 8090                                                      # port at which the application will be running
+  tomcat:
+    accesslog:
+      enabled: true                                               # tomcat access log to track down each request
+  servlet:
+    context-path: /vf/be/                                         # defines the base path to access the app
+  error:                                                          # enables the display of custom messages in server responses
+    include-message: always
+    include-binding-errors: always
+oauth:
+  url:
+    userInfo: https://api.github.com/user                         # URL pointing to userInfo endpoint on oauth server (for ex. Github: https://api.github.com/user, Keycloak: {ADDRESS}/auth/realms/{REALM}/protocol/openid-connect/userinfo)
+  provider: github                                                # OAuth provider (it is used only in error messages).
+auth:
+  id:                                                             # user id key in returned userinfo object (for ex. Github: id, Keycloak: sub)
+  username:                                                       # username key in returned userinfo object - supposed to be unique (for ex. Github: username,
+  name:                                                           # user's full name key in returned userinfo object (for ex. Github: name, Keycloak: name)
+  email:                                                          # email address key in returned userinfo object (for ex. Github: email, Keycloak: email)
+superusers:
+  set:
+    # yaml list of user names(refers to auth.username). Example:
+    # - github-nickname1
+    # - nickname2
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST}                         # The connection host of Redis database.
+      port: ${REDIS_PORT}                         # The connection port of Redis database.
+      username: ${REDIS_USER}                     # The connection username of Redis database.
+      password: ${REDIS_PASSWORD}                 # The connection password of Redis database.
+      database: ${REDIS_DATABASE}                 # The connection database name of Redis database ("0" - by default).
+      timeout: 60000                              # The connection timeout of Redis database
