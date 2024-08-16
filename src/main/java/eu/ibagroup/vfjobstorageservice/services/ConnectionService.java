@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.ibagroup.vfjobstorageservice.dto.connections.ConnectionDto;
 import eu.ibagroup.vfjobstorageservice.dto.connections.ConnectionOverviewDto;
 import eu.ibagroup.vfjobstorageservice.model.Connection;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -40,8 +41,9 @@ public class ConnectionService {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
+
     public ConnectionService(@Qualifier("redisTemplate") RedisTemplate<String, String> redisTemplate,
-                            ObjectMapper objectMapper) {
+                             ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
     }
@@ -87,6 +89,16 @@ public class ConnectionService {
         return ConnectionOverviewDto.builder()
                 .editable(true)
                 .connections(connectionDtoList)
+                .build();
+    }
+
+    @SneakyThrows
+    public ConnectionDto get(String projectId, String connectionId) {
+        String connectionKey = PROJECT_CONNECTION_PREFIX + projectId;
+        Connection connection = jsonToConnection((String) redisTemplate.opsForHash().get(connectionKey, connectionId));
+        return ConnectionDto.builder()
+                .key(connection.getKey())
+                .value(connection.getValue())
                 .build();
     }
 

@@ -19,22 +19,20 @@
 
 package eu.ibagroup.vfjobstorageservice.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
 /**
  * Single connection class.
  */
-@EqualsAndHashCode
+@Data
 @Builder(toBuilder = true)
-@Getter
-@Setter
-@ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class Connection {
     private String key;
     private Map<String, String> value;

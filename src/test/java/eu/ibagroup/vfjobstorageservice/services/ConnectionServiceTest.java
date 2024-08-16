@@ -60,6 +60,16 @@ public class ConnectionServiceTest {
     }
 
     @Test
+    void testGet() throws IOException {
+        Path file = Path.of("", "src/test/resources").resolve("connections.json");
+        when(redisTemplate.opsForHash()).thenReturn(hashOperations);
+        String jsonConnection = Files.readString(file);
+        when(hashOperations.get("connection:vf-project-name", "51441ddd-53cd-41f4-9dde-371de6e315d6")).thenReturn(jsonConnection);
+        connectionService.get(PROJECT_ID, "51441ddd-53cd-41f4-9dde-371de6e315d6");
+        verify(hashOperations).get("connection:vf-project-name", "51441ddd-53cd-41f4-9dde-371de6e315d6");
+    }
+
+    @Test
     void testDelete() {
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
         when(hashOperations.delete(any(), any())).thenReturn(1L);

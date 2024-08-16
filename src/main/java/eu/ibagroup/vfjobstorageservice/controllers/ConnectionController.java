@@ -57,8 +57,8 @@ public class ConnectionController {
     @Operation(summary = "Create connection", description = "Create new connection in existing project")
     @PostMapping("{projectId}/connection")
     public ResponseEntity<String> create(@PathVariable String projectId,
-                                         @RequestBody final ConnectionDto connectionDto) throws JsonProcessingException
-    {
+                                         @RequestBody final ConnectionDto connectionDto)
+            throws JsonProcessingException {
         LOGGER.info(
                 "Creating connection");
         String connectionKey = connectionService.create(projectId, connectionDto);
@@ -82,6 +82,24 @@ public class ConnectionController {
                 projectId
         );
         return connectionService.getAll(projectId);
+    }
+
+    /**
+     * Getting connection in a project by id
+     *
+     * @param projectId project ID
+     * @return connection by its ID.
+     */
+    @Operation(summary = "Get all connections in a project",
+            description = "Get information about all connections in a project")
+    @GetMapping("{projectId}/connections/{connectionId}")
+    public ConnectionDto get(@PathVariable String projectId, @PathVariable String connectionId) {
+        LOGGER.info(
+                "Receiving connection '{}' in project '{}'",
+                connectionId,
+                projectId
+        );
+        return connectionService.get(projectId, connectionId);
     }
 
     /**

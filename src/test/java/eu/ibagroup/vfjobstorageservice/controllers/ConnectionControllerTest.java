@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ConnectionControllerTest {
@@ -56,6 +55,20 @@ class ConnectionControllerTest {
         assertTrue(response.isEditable(), "Must be true");
 
         verify(connectionService).getAll(anyString());
+    }
+
+    @Test
+    void testGet() {
+        ConnectionDto connectionDto = ConnectionDto
+                .builder()
+                .key("id")
+                .value(Map.of("key", "value"))
+                .build();
+        when(connectionService.get("projectId", "id")).thenReturn(connectionDto);
+
+        ConnectionDto response = controller.get("projectId", "id");
+        assertEquals(response, connectionDto, "Actual should be the same, as expected.");
+        verify(connectionService).get("projectId", "id");
     }
 
     @Test
