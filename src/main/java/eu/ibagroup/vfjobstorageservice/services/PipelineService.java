@@ -20,8 +20,11 @@
 package eu.ibagroup.vfjobstorageservice.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.ibagroup.vfjobstorageservice.dto.exporting.Exportable;
+import eu.ibagroup.vfjobstorageservice.dto.graph.DefinitionDto;
+import eu.ibagroup.vfjobstorageservice.dto.graph.StageDto;
 import eu.ibagroup.vfjobstorageservice.dto.importing.ImportResponseDto;
 import eu.ibagroup.vfjobstorageservice.dto.importing.Importable;
 import eu.ibagroup.vfjobstorageservice.dto.pipelines.PipelineDto;
@@ -41,24 +44,29 @@ import org.springframework.util.CollectionUtils;
 
 import java.beans.FeatureDescriptor;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static eu.ibagroup.vfjobstorageservice.dto.Constants.DRAFT_STATUS;
-import static eu.ibagroup.vfjobstorageservice.dto.Constants.PIPELINE_KEY_PREFIX;
-import static eu.ibagroup.vfjobstorageservice.dto.Constants.PROJECT_KEY_PREFIX;
+import static eu.ibagroup.vfjobstorageservice.dto.Constants.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PipelineService implements Exportable<PipelineDto>, Importable<PipelineDto> {
+    private static final String JOB_NAME_LABEL = "jobName";
+    private static final String JOB_ID_LABEL = "jobId";
+    private static final String PIPELINE_NAME_LABEL = "pipelineName";
+    private static final String PIPELINE_ID_LABEL = "pipelineId";
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
+    private final JobStorageService jobService;
 
     public static String[] findFieldsWithNullValues(Object source) {
         final BeanWrapper wrappedSource = PropertyAccessorFactory.forBeanPropertyAccess(source);
@@ -99,15 +107,20 @@ public class PipelineService implements Exportable<PipelineDto>, Importable<Pipe
                 .collect(Collectors.toSet());
     }
 
-    private String getIdByName(String projectId, String name) {
+    private Optional<String> getIdByName(String projectId, String name) {
         return getAll(projectId).getPipelines().stream()
                 .filter(pip -> pip.getName().equals(name))
                 .findFirst()
-                .map(PipelineOverviewDto::getId)
-                .orElseThrow(() -> new BadRequestException(
-                        "Pipeline with such a name '%s' doesn't exists in project '%s'",
-                        name, projectId
-                ));
+                .map(PipelineOverviewDto::getId);
+    }
+
+    public PipelineOverviewListDto getAllByNames(String projectId, Collection<String> names) {
+        return PipelineOverviewListDto.builder()
+                .pipelines(getAll(projectId).getPipelines().stream()
+                        .filter(pip -> names.contains(pip.getName()))
+                        .toList())
+                .editable(true)
+                .build();
     }
 
     public PipelineDto getById(String projectId, String id) {
@@ -190,17 +203,67 @@ public class PipelineService implements Exportable<PipelineDto>, Importable<Pipe
             try {
                 pipeline.setJobsStatuses(new HashMap<>());
                 pipeline.setStatus(DRAFT_STATUS);
+                pipeline.setDefinition(replaceJobsIdsInPipeline(projectId, pipeline.getDefinition()));
                 create(projectId, pipeline);
-            } catch (DuplicateKeyException | JsonProcessingException e) {
+            } catch (DuplicateKeyException | JsonProcessingException | IllegalArgumentException e) {
                 LOGGER.error("Error occurred during importing pipelines: {}", e.getMessage());
                 importData.addToNotImportedPipelines(pipeline.getName());
                 importData.addToErrorsInPipelines(pipeline.getName(), e.getLocalizedMessage());
             } catch (BadRequestException e) {
                 LOGGER.info("Pipeline '{}' exists. Updating it: {}", pipeline.getName(), e.getLocalizedMessage());
-                update(projectId, getIdByName(projectId, pipeline.getName()), pipeline);
+                update(projectId, getIdByName(projectId, pipeline.getName()).orElseThrow(() -> new BadRequestException(
+                        "Pipeline with such a name '%s' doesn't exists in project '%s'",
+                        pipeline.getName(), projectId
+                )), pipeline);
             }
         });
     }
+
+    /**
+     * Method replaces old jobs IDs to new in pipelines.
+     *
+     * @param definitionJson source pipeline's definition.
+     * @return processed definition.
+     */
+    private JsonNode replaceJobsIdsInPipeline(String projectId, JsonNode definitionJson) {
+        ObjectMapper mapper = new ObjectMapper();
+        DefinitionDto definitionDto = mapper.convertValue(definitionJson, DefinitionDto.class);
+        definitionDto.getGraph().stream()
+                .filter(StageDto::isVertex)
+                .forEach((StageDto node) -> replaceEntityWithActualInfo(projectId, node));
+        return mapper.valueToTree(definitionDto);
+    }
+
+    /**
+     * Secondary method for replacing all old job's ID's and pipeline's IDs by actual ones.
+     *
+     * @param projectId current project ID.
+     * @param node      current entity node.
+     */
+    private void replaceEntityWithActualInfo(String projectId, StageDto node) {
+        Object jobName = node.getValue().get(JOB_NAME_LABEL);
+        if (jobName != null && !jobName.toString().isEmpty()) {
+            jobService.findByName(projectId, jobName.toString())
+                    .ifPresentOrElse(job -> node.getValue().replace(JOB_ID_LABEL, job.getId()),
+                            () -> {
+                                throw new IllegalArgumentException(
+                                        String.format("Cannot find job for [%s] stage.",
+                                                node.getValue().getOrDefault("name", node.getId())));
+                            });
+        } else {
+            Object pipelineName = node.getValue().get(PIPELINE_NAME_LABEL);
+            if (pipelineName != null && !pipelineName.toString().isEmpty()) {
+                getIdByName(projectId, pipelineName.toString())
+                        .ifPresentOrElse(pipId -> node.getValue().replace(PIPELINE_ID_LABEL, pipId),
+                                () -> {
+                                    throw new IllegalArgumentException(
+                                            String.format("Cannot find pipeline for [%s] stage.",
+                                                    node.getValue().getOrDefault("name", node.getId())));
+                                });
+            }
+        }
+    }
+
 
     /**
      * Method for copying a job.

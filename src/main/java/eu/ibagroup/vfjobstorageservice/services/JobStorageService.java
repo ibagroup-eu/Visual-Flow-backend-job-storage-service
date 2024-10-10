@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -161,6 +162,22 @@ public class JobStorageService implements Exportable<JobDto>, Importable<JobDto>
                         return null;
                     }
                 }).collect(Collectors.toList());
+    }
+
+    public Optional<JobOverviewDto> findByName(String projectId, String name) {
+        String folderKey = PROJECT_KEY_PREFIX + projectId;
+        for (Object value: redisTemplate.opsForHash().entries(folderKey).values()) {
+            try {
+                var job = JobOverviewMapper.INSTANCE.entityToDto(jsonToJob((String) value));
+                if (job.getName().equals(name)) {
+                    return Optional.of(job);
+                }
+            } catch (JsonProcessingException e) {
+                LOGGER.error("Error while executing findByName method: {}", e.getLocalizedMessage());
+                throw new JsonParseException(e.getMessage());
+            }
+        }
+        return Optional.empty();
     }
 
     public void delete(String projectId, String jobId) {

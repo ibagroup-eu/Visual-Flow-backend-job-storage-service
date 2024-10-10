@@ -16,30 +16,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package eu.ibagroup.vfjobstorageservice.dto.graph;
 
-package eu.ibagroup.vfjobstorageservice.dto.exporting;
-
-import eu.ibagroup.vfjobstorageservice.dto.jobs.JobDto;
-import eu.ibagroup.vfjobstorageservice.dto.pipelines.PipelineDto;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Export response DTO class.
+ * Graph Stage interpretation.
+ * Contains some frontend logic (need to convert stage into JSON correctly).
+ * Mainly used for proper parsing.
  */
-@EqualsAndHashCode
-@Getter
+@AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "DTO with exported jobs/pipelines in serialized JSON format")
-public class ExportResponseDto {
-    @ArraySchema(arraySchema = @Schema(description = "List of exported jobs' structures"))
-    private final Set<JobDto> jobs = new HashSet<>();
-    @ArraySchema(arraySchema = @Schema(description = "List of exported pipelines' structures"))
-    private final Set<PipelineDto> pipelines = new HashSet<>();
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class StageDto {
+    private Map<String, Object> value;
+    private Map<String, Object> geometry;
+    private String style;
+    private String id;
+    private boolean vertex;
+    private boolean edge;
+    private boolean connectable;
+    private String parent;
+    private String source;
+    private String target;
+    private String mxObjectId;
+    private List<StageDto> edges;
 }

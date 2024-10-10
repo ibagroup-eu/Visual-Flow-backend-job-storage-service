@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -39,8 +40,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import java.util.List;
 
 /**
  * Manage requests for pipelines.
@@ -155,16 +157,21 @@ public class PipelineController {
      * Get all pipelines in project.
      *
      * @param projectId project id
+     * @param names     pipeline's names to get
      * @return ResponseEntity with jobs graphs
      */
     @Operation(summary = "Get all pipelines in a project", description = "Get information about all pipelines in" +
             " a project")
     @GetMapping("{projectId}/pipeline")
-    public PipelineOverviewListDto getAll(@PathVariable String projectId) {
+    public PipelineOverviewListDto getAll(@PathVariable String projectId,
+                                          @RequestParam(required = false) List<String> names) {
         LOGGER.info(
                 "Receiving all pipelines in project '{}'",
                 projectId);
-        return pipelineService.getAll(projectId);
+        if (CollectionUtils.isEmpty(names)) {
+            return pipelineService.getAll(projectId);
+        }
+        return pipelineService.getAllByNames(projectId, names);
     }
 
     /**

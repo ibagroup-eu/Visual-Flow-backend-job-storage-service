@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -38,6 +39,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransferService {
 
+    private static final String JOB_ID_PROPERTY = "jobId";
+    private static final String PIPELINE_ID_PROPERTY = "pipelineId";
     private final JobStorageService jobService;
     private final PipelineService pipelineService;
 
@@ -51,32 +54,64 @@ public class TransferService {
      */
     public ExportResponseDto exporting(String projectId, Set<String> jobIds,
                                        Collection<ExportRequestDto.PipelineRequest> pipelineRequests) {
-        Set<String> pipelineIds = pipelineRequests.stream()
+        ExportResponseDto result = new ExportResponseDto();
+        insertNestedEntities(projectId, pipelineService.getByIds(projectId, pipelineRequests.stream()
+                .filter(ExportRequestDto.PipelineRequest::isWithRelatedEntities)
                 .map(ExportRequestDto.PipelineRequest::getPipelineId)
-                .collect(Collectors.toSet());
-        Set<PipelineDto> pipelines = pipelineService.export(projectId, pipelineIds);
-        Set<String> pipelineIdsForJobsExport = pipelineRequests.stream()
-                .filter(ExportRequestDto.PipelineRequest::isWithRelatedJobs)
+                .collect(Collectors.toSet())), result);
+        result.getPipelines().addAll(pipelineService.export(projectId, pipelineRequests.stream()
                 .map(ExportRequestDto.PipelineRequest::getPipelineId)
-                .collect(Collectors.toSet());
-        pipelines.stream()
-                .filter(pipDto -> pipelineIdsForJobsExport.contains(pipDto.getId()))
-                .forEach((PipelineDto pipelineDto) -> {
-                    String rawData = pipelineDto.getDefinition().toPrettyString();
-                    String rawDataSearch = ".*\"jobId\" : \"(.*)\".*";
-                    Pattern rawDataPattern = Pattern.compile(rawDataSearch, Pattern.CASE_INSENSITIVE);
-                    Matcher rawDataMatcher = rawDataPattern.matcher(rawData);
-                    while (rawDataMatcher.find()) {
-                        jobIds.add(rawDataMatcher.group(1));
-                    }
-                });
-        return ExportResponseDto
-                .builder()
-                .jobs(jobService.export(projectId, jobIds))
-                .pipelines(pipelines)
-                .build();
+                .collect(Collectors.toSet())));
+        result.getJobs().addAll(jobService.export(projectId, jobIds));
+        return result;
     }
 
+    /**
+     * Secondary method for inserting all nested entities from the required pipelines.
+     *
+     * @param projectId          is a project ID.
+     * @param pipelinesToProcess pipelines with nested entities.
+     * @param exportResult       is a result of exporting.
+     */
+    private void insertNestedEntities(String projectId, List<PipelineDto> pipelinesToProcess,
+                                      ExportResponseDto exportResult) {
+        pipelinesToProcess.forEach((PipelineDto pipeline) -> {
+            exportResult.getJobs().addAll(jobService.getByIds(projectId,
+                    getNestedEntityIds(pipeline, JOB_ID_PROPERTY)));
+            List<PipelineDto> nestedPipelines = pipelineService.getByIds(projectId,
+                    getNestedEntityIds(pipeline, PIPELINE_ID_PROPERTY));
+            exportResult.getPipelines().addAll(nestedPipelines);
+            insertNestedEntities(projectId, nestedPipelines, exportResult);
+        });
+    }
+
+    /**
+     * Secondary method for finding all nested entities' IDs.
+     *
+     * @param pipeline  pipeline with nested entities.
+     * @param fieldName job or pipeline nested entity type.
+     * @return all nested entities' IDs.
+     */
+    private static Set<String> getNestedEntityIds(PipelineDto pipeline, String fieldName) {
+        Set<String> entityIds = new HashSet<>();
+        String rawData = pipeline.getDefinition().toPrettyString();
+        String rawDataSearch = String.format(".*\"%s\" : \"(.*)\".*", fieldName);
+        Pattern rawDataPattern = Pattern.compile(rawDataSearch, Pattern.CASE_INSENSITIVE);
+        Matcher rawDataMatcher = rawDataPattern.matcher(rawData);
+        while (rawDataMatcher.find()) {
+            entityIds.add(rawDataMatcher.group(1));
+        }
+        return entityIds;
+    }
+
+    /**
+     * Method for importing jobs and pipelines.
+     *
+     * @param projectId is project ID.
+     * @param jobs      jobs DTOs.
+     * @param pipelines pipelines DTOs.
+     * @return importing result.
+     */
     public ImportResponseDto importing(String projectId, List<JobDto> jobs, List<PipelineDto> pipelines) {
         ImportResponseDto result = new ImportResponseDto();
         if (!CollectionUtils.isEmpty(jobs)) {

@@ -55,18 +55,18 @@ public class ImportResponseDto {
     private final Map<String, List<MissingParamDto>> missingProjectConnections = new HashMap<>();
 
     public void addToErrorsInJobs(String jobName, String error) {
-        this.errorsInJobs.computeIfAbsent(jobName, key -> new ArrayList<>()).add(error);
+        errorsInJobs.computeIfAbsent(jobName, key -> new ArrayList<>()).add(error);
     }
 
     public void addToErrorsInPipelines(String pipelineName, String error) {
-        this.errorsInJobs.computeIfAbsent(pipelineName, key -> new ArrayList<>()).add(error);
+        errorsInPipelines.computeIfAbsent(pipelineName, key -> new ArrayList<>()).add(error);
     }
 
     public void addToNotImportedJobs(String jobName) {
-        this.notImportedJobs.add(jobName);
+        notImportedJobs.add(jobName);
     }
 
     public void addToNotImportedPipelines(String pipelineName) {
-        this.notImportedJobs.add(pipelineName);
+        notImportedPipelines.add(pipelineName);
     }
 }

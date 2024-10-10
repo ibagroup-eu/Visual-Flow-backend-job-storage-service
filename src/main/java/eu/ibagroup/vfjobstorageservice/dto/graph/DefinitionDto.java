@@ -16,30 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package eu.ibagroup.vfjobstorageservice.dto.graph;
 
-package eu.ibagroup.vfjobstorageservice.dto.exporting;
-
-import eu.ibagroup.vfjobstorageservice.dto.jobs.JobDto;
-import eu.ibagroup.vfjobstorageservice.dto.pipelines.PipelineDto;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 /**
- * Export response DTO class.
+ * Graph definition interpretation.
+ * In the future, it is planned to get rid of the nested
+ * graph in definition.
  */
-@EqualsAndHashCode
-@Getter
+@AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "DTO with exported jobs/pipelines in serialized JSON format")
-public class ExportResponseDto {
-    @ArraySchema(arraySchema = @Schema(description = "List of exported jobs' structures"))
-    private final Set<JobDto> jobs = new HashSet<>();
-    @ArraySchema(arraySchema = @Schema(description = "List of exported pipelines' structures"))
-    private final Set<PipelineDto> pipelines = new HashSet<>();
+@Data
+public class DefinitionDto {
+    private List<StageDto> graph;
 }
